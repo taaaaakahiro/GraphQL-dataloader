@@ -1,2 +1,7 @@
-# GraphQL-dataloader
-go,gqlgen,dataloader
+# GraphQL-dataloader-MySQL
+go,gqlgen,dataloader,MySQL
+
+## package
+
+- errors  
+github.com/pkg/errors  
