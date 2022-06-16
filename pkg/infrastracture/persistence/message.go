@@ -67,7 +67,8 @@ func (r MessageRepo) Messages() ([]entity.Message, error) {
 
 	for rows.Next() {
 		message := entity.Message{}
-		err := rows.Scan(&message.Id, &message.UserId, message.Message)
+
+		err = rows.Scan(&message.Id, &message.UserId, &message.Message)
 		if err != nil {
 			return nil, errs.WithStack(err)
 		}
@@ -81,5 +82,32 @@ func (r MessageRepo) Messages() ([]entity.Message, error) {
 }
 
 func (r MessageRepo) CreateMessage(message *entity.Message) error {
+	tx, cancel, err := r.database.Begin()
+	if err != nil {
+		return errs.WithStack(err)
+	}
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+		cancel()
+	}()
+
+	query := "INSERT INTO message(user_id, message) VALUES (?, ?);"
+	ret, err := tx.Exec(query, message.UserId, message.Message)
+	if err != nil {
+		return errs.WithStack(err)
+	}
+	err = tx.Commit()
+	if err != nil {
+		return errs.WithStack(err)
+	}
+
+	lastId, err := ret.LastInsertId()
+	if err != nil {
+		return errs.WithStack(err)
+	}
+	message.Id = int(lastId)
+
 	return nil
 }

@@ -5,16 +5,36 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"strconv"
 
+	"github.com/taaaaakahiro/GraphQL-dataloader-MySQL/pkg/domain/entity"
 	"github.com/taaaaakahiro/GraphQL-dataloader-MySQL/pkg/graph/generated"
 	"github.com/taaaaakahiro/GraphQL-dataloader-MySQL/pkg/graph/model"
 )
 
 func (r *mutationResolver) CreateMessage(ctx context.Context, input model.NewMessage) (*model.Message, error) {
-	panic(fmt.Errorf("not implemented"))
+	userId, err := strconv.Atoi(input.UserID)
+	if err != nil {
+		return nil, err
+	}
+	// _, err := r.Repo.User.User(userId)
+
+	entityMessage := &entity.Message{
+		UserId:  userId,
+		Message: input.Message,
+	}
+
+	err = r.Repo.Message.CreateMessage(entityMessage)
+	if err != nil {
+		return nil, err
+	}
+	result := &model.Message{
+		Message: input.Message,
+		ID:      strconv.Itoa(entityMessage.Id),
+		UserID:  input.UserID,
+	}
+	return result, nil
 
 }
 

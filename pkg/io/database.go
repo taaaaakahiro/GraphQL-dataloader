@@ -57,3 +57,12 @@ func (d *SQLDatabase) Prepare(query string) (*sql.Stmt, error) {
 func errDoesNotDB() error {
 	return errs.New("database does not exist. Please Open() first")
 }
+
+func (d *SQLDatabase) Begin() (*sql.Tx, context.CancelFunc, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	tx, err := d.database.BeginTx(ctx, &sql.TxOptions{
+		Isolation: 0,
+		ReadOnly:  false,
+	})
+	return tx, cancel, err
+}
