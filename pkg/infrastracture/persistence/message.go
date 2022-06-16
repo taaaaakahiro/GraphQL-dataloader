@@ -52,6 +52,31 @@ func (r *MessageRepo) ListMessages(userId int) ([]entity.Message, error) {
 
 func (r MessageRepo) Messages() ([]entity.Message, error) {
 	messages := make([]entity.Message, 0)
+
+	query := "SELECT id, user_id, message FROM message ORDER BY id DESC"
+	stmtOut, err := r.database.Prepare(query)
+	if err != nil {
+		return nil, errs.WithStack(err)
+	}
+	defer stmtOut.Close()
+
+	rows, err := stmtOut.Query()
+	if err != nil {
+		return nil, errs.WithStack(err)
+	}
+
+	for rows.Next() {
+		message := entity.Message{}
+		err := rows.Scan(&message.Id, &message.UserId, message.Message)
+		if err != nil {
+			return nil, errs.WithStack(err)
+		}
+		messages = append(messages, message)
+
+	}
+	if err = rows.Err(); err != nil {
+		return nil, errs.WithStack(err)
+	}
 	return messages, nil
 }
 
