@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/99designs/gqlgen v0.17.10
+	github.com/go-sql-driver/mysql v1.6.0
 	github.com/graph-gophers/dataloader v5.0.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/rs/cors v1.8.2
@@ -15,7 +16,6 @@ require (
 
 require (
 	github.com/agnivade/levenshtein v1.1.1 // indirect
-	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/mitchellh/mapstructure v1.3.1 // indirect
