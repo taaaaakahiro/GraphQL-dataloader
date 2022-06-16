@@ -2,12 +2,14 @@ package persistence
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"strconv"
 	"strings"
 
 	"github.com/graph-gophers/dataloader"
+	errs "github.com/pkg/errors"
 
 	"github.com/taaaaakahiro/GraphQL-dataloader-MySQL/pkg/domain/entity"
 	"github.com/taaaaakahiro/GraphQL-dataloader-MySQL/pkg/domain/repository"
@@ -25,6 +27,62 @@ func NewUserReopsitory(db *io.SQLDatabase) *UserRepo {
 	return &UserRepo{
 		database: db,
 	}
+}
+
+func (r UserRepo) User(userId int) (entity.User, error) {
+	user := entity.User{}
+
+	query := "SELECT id, name FROM user WHERE id = ?"
+	stmtOut, err := r.database.Prepare(query)
+	if err != nil {
+		return user, err
+	}
+	defer stmtOut.Close()
+
+	err = stmtOut.QueryRow(userId).Scan(&user.Id, &user.Name)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			log.Println("row not found")
+			return user, err
+		default:
+			return user, err
+		}
+	}
+	return user, nil
+}
+
+func (r UserRepo) ListUsers() ([]entity.User, error) {
+	query := "SELECT id, name FROM user ORDER BY id DESC"
+	stmtOut, err := r.database.Prepare(query)
+	if err != nil {
+		return nil, errs.WithStack(err)
+	}
+	defer stmtOut.Close()
+
+	rows, err := stmtOut.Query()
+	if err != nil {
+		return nil, errs.WithStack(err)
+	}
+
+	users := make([]entity.User, 0)
+	// Fetch rows
+	for rows.Next() {
+		// get RawBytes from data
+		user := entity.User{}
+
+		err = rows.Scan(&user.Id, &user.Name)
+		if err != nil {
+			return nil, errs.WithStack(err)
+		}
+
+		users = append(users, user)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return users, nil
+
 }
 
 // GetUsers ref) https://gqlgen.com/reference/dataloaders/

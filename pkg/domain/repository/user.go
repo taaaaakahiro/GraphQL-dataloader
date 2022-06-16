@@ -10,5 +10,5 @@ import (
 type IUserRepository interface {
 	ListUsers() ([]entity.User, error)
 	User(userId int) (entity.User, error)
-	GetUsers(ctx context.Context, keys dataloader.Keys)
+	GetUsers(ctx context.Context, keys dataloader.Keys) []*dataloader.Result
 }

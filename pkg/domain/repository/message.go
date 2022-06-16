@@ -5,7 +5,7 @@ import (
 )
 
 type IMessageRepository interface {
-	ListMessages(userId int) ([]entity.Message, error)
-	Messages() ([]entity.Message, error)
+	// ListMessages(userId int) ([]entity.Message, error)
+	// Messages() ([]entity.Message, error)
 	CreateMessage(message *entity.Message) error
 }

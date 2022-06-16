@@ -2,27 +2,29 @@
 #
 # https://gqlgen.com/getting-started/
 
-type Todo {
-  id: ID!
-  text: String!
-  done: Boolean!
-  user: User!
-}
-
 type User {
   id: ID!
   name: String!
 }
 
-type Query {
-  todos: [Todo!]!
+type Message {
+  id: ID!
+  user: User!
+  message: String!
 }
 
-input NewTodo {
-  text: String!
-  userId: String!
+type Query {
+  users: [User!]!
+  # HACK: 特定の条件で絞り込む
+  messages(userID: ID!): [Message]
+  allMessages: [Message!]
+}
+
+input NewMessage {
+  message: String!
+  userID: ID!
 }
 
 type Mutation {
-  createTodo(input: NewTodo!): Todo!
+  createMessage(input: NewMessage!): Message!
 }

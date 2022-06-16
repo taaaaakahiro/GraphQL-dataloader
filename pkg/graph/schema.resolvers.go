@@ -11,11 +11,19 @@ import (
 	"github.com/taaaaakahiro/GraphQL-dataloader-MySQL/pkg/graph/model"
 )
 
-func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
+func (r *mutationResolver) CreateMessage(ctx context.Context, input model.NewMessage) (*model.Message, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
+func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) Messages(ctx context.Context, userID string) ([]*model.Message, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) AllMessages(ctx context.Context) ([]*model.Message, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 

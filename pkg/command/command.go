@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"os/signal"
+	"syscall"
 
 	gqlhandler "github.com/99designs/gqlgen/graphql/handler"
 	"github.com/taaaaakahiro/GraphQL-dataloader-MySQL/pkg/config"
@@ -14,9 +16,11 @@ import (
 	"github.com/taaaaakahiro/GraphQL-dataloader-MySQL/pkg/infrastracture/loader"
 	"github.com/taaaaakahiro/GraphQL-dataloader-MySQL/pkg/infrastracture/persistence"
 	"github.com/taaaaakahiro/GraphQL-dataloader-MySQL/pkg/io"
+	"github.com/taaaaakahiro/GraphQL-dataloader-MySQL/pkg/server"
 	"github.com/taaaaakahiro/GraphQL-dataloader-MySQL/pkg/version"
 
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -85,9 +89,29 @@ func run(ctx context.Context) int {
 				Loaders: loaders,
 			},
 		}))
-	registry := handler.NewHandeler(logger, repositories, query, version.Version)
 
 	// init to start GraphQL server
+	registry := handler.NewHandler(logger, repositories, query, version.Version)
+	httpServer := server.NewServer(registry, &server.Config{Log: logger})
+	wg, ctx := errgroup.WithContext(ctx)
+	wg.Go(func() error {
+		return httpServer.Serve(listener)
+	})
+
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGTERM, os.Interrupt)
+	select {
+	case <-sigCh:
+	case <-ctx.Done():
+	}
+
+	if err := httpServer.GracefulShutdown(); err != nil {
+		return exitError
+	}
+	cancel()
+	if err := wg.Wait(); err != nil {
+		return exitError
+	}
 
 	return exitOK
 }
