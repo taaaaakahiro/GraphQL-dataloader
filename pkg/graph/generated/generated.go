@@ -36,6 +36,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	Message() MessageResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 }
@@ -69,7 +70,6 @@ type ComplexityRoot struct {
 type MessageResolver interface {
 	User(ctx context.Context, obj *model.Message) (*model.User, error)
 }
-
 type MutationResolver interface {
 	CreateMessage(ctx context.Context, input model.NewMessage) (*model.Message, error)
 }
@@ -414,7 +414,7 @@ func (ec *executionContext) _Message_user(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Message, nil
+		return ec.resolvers.Message().User(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -435,8 +435,8 @@ func (ec *executionContext) fieldContext_Message_user(ctx context.Context, field
 	fc = &graphql.FieldContext{
 		Object:     "Message",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -2760,21 +2760,34 @@ func (ec *executionContext) _Message(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Message_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "user":
+			field := field
 
-			out.Values[i] = ec._Message_user(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Message_user(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "message":
 
 			out.Values[i] = ec._Message_message(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -3346,6 +3359,10 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNUser2githubᚗcomᚋtaaaaakahiroᚋGraphQLᚑdataloaderᚑMySQLᚋpkgᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {
+	return ec._User(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋtaaaaakahiroᚋGraphQLᚑdataloaderᚑMySQLᚋpkgᚋgraphᚋmodelᚐUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.User) graphql.Marshaler {

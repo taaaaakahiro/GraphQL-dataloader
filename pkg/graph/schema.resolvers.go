@@ -13,6 +13,10 @@ import (
 	"github.com/taaaaakahiro/GraphQL-dataloader-MySQL/pkg/graph/model"
 )
 
+func (r *messageResolver) User(ctx context.Context, obj *model.Message) (*model.User, error) {
+	return r.Loaders.GetUser(ctx, obj.UserID)
+}
+
 func (r *mutationResolver) CreateMessage(ctx context.Context, input model.NewMessage) (*model.Message, error) {
 	userId, err := strconv.Atoi(input.UserID)
 	if err != nil {
@@ -35,7 +39,6 @@ func (r *mutationResolver) CreateMessage(ctx context.Context, input model.NewMes
 		UserID:  input.UserID,
 	}
 	return result, nil
-
 }
 
 func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
@@ -92,10 +95,7 @@ func (r *queryResolver) AllMessages(ctx context.Context) ([]*model.Message, erro
 	return messages, nil
 }
 
-func (r *messageResolver) User(ctx context.Context, obj *model.Message) (*model.User, error) {
-	return r.Loaders.GetUser(ctx, obj.UserID)
-}
-
+// Message returns generated.MessageResolver implementation.
 func (r *Resolver) Message() generated.MessageResolver { return &messageResolver{r} }
 
 // Mutation returns generated.MutationResolver implementation.
@@ -104,6 +104,6 @@ func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResol
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
+type messageResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
-type messageResolver struct{ *Resolver }
