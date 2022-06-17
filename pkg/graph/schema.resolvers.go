@@ -92,6 +92,10 @@ func (r *queryResolver) AllMessages(ctx context.Context) ([]*model.Message, erro
 	return messages, nil
 }
 
+func (r *messageResolver) User(ctx context.Context, obj *model.Message) (*model.User, error) {
+	return r.Loaders.GetUser(ctx, obj.UserID)
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
@@ -100,3 +104,4 @@ func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+type messageResolver struct{ *Resolver }
