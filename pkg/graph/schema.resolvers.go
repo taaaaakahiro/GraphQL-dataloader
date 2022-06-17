@@ -96,6 +96,8 @@ func (r *messageResolver) User(ctx context.Context, obj *model.Message) (*model.
 	return r.Loaders.GetUser(ctx, obj.UserID)
 }
 
+func (r *Resolver) Message() generated.MessageResolver { return &messageResolver{r} }
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 

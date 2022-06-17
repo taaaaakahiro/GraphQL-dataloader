@@ -1,12 +1,16 @@
-dk=docker-compose
+dck=docker-compose
 
 conf:
-	${dk} config
+	${dck} config
 up:
-	${dk} up --build -d
+	${dck} up --build -d
 down:
-	${dk} down -v
+	${dck} down -v
 res:
-	${dk} restart
+	${dck} restart
 sh-mysql:
-	${dk} exec mysql8 sh 
+	${dck} exec mysql8 sh
+test:
+	@echo "Test Start"
+	go test ./pkg/... -v -count=1
+

@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"os"
+	"strconv"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -35,6 +36,62 @@ func TestQueryResolver_Users(t *testing.T) {
 		}
 
 	})
+}
+
+func TestMessageResolver_User(t *testing.T) {
+	resolver := getResolver()
+	ctx := context.Background()
+	msgResolver := resolver.Message()
+
+	t.Run("get user=1", func(t *testing.T) {
+		message := model.Message{
+			UserID: "1",
+		}
+		user, err := msgResolver.User(ctx, &message)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, user)
+		assert.Equal(t, "1", user.ID)
+		assert.Equal(t, "Hoge", user.Name)
+	})
+	t.Run("get user=2", func(t *testing.T) {
+		message := model.Message{
+			UserID: "2",
+		}
+		user, err := msgResolver.User(ctx, &message)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, user)
+		assert.Equal(t, "2", user.ID)
+		assert.Equal(t, "Fuga", user.Name)
+	})
+	t.Run("get not exist user", func(t *testing.T) {
+		message := model.Message{
+			UserID: "9999",
+		}
+		user, err := msgResolver.User(ctx, &message)
+		assert.Error(t, err)
+		assert.Nil(t, user)
+	})
+}
+
+func TestMutationResolver_CreateMessage(t *testing.T) {
+	resolver := getMutationResolver()
+	ctx := context.Background()
+
+	t.Run("create message user=1", func(t *testing.T) {
+		input := model.NewMessage{
+			UserID:  "1",
+			Message: "new message 1",
+		}
+		message, err := resolver.CreateMessage(ctx, input)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, message)
+		id, _ := strconv.Atoi(message.ID)
+		assert.Greater(t, id, 1)
+		assert.Equal(t, input.UserID, message.UserID)
+		assert.Equal(t, input.Message, message.Message)
+
+	})
+
 }
 
 func getQueryResolver() generated.QueryResolver {
@@ -74,4 +131,8 @@ func getDatabase() *io.SQLDatabase {
 		log.Println(err.Error())
 	}
 	return db
+}
+
+func getMutationResolver() generated.MutationResolver {
+	return getResolver().Mutation()
 }

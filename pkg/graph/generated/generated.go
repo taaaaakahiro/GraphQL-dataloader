@@ -66,6 +66,10 @@ type ComplexityRoot struct {
 	}
 }
 
+type MessageResolver interface {
+	User(ctx context.Context, obj *model.Message) (*model.User, error)
+}
+
 type MutationResolver interface {
 	CreateMessage(ctx context.Context, input model.NewMessage) (*model.Message, error)
 }
