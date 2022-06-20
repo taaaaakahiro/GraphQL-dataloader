@@ -38,6 +38,28 @@ func TestQueryResolver_Users(t *testing.T) {
 	})
 }
 
+func TestQueryResolver_Messages(t *testing.T) {
+	resolver := getQueryResolver()
+	ctx := context.Background()
+	t.Run("get all messages", func(t *testing.T) {
+		messages, err := resolver.Messages(ctx, "1")
+		assert.NoError(t, err)
+		assert.NotEmpty(t, messages)
+		assert.Len(t, messages, 2)
+
+		want := []*model.Message{
+			{ID: "2", UserID: "1", Message: "test message id 2"},
+			{ID: "1", UserID: "1", Message: "test message id 1"},
+		}
+
+		if diff := cmp.Diff(want, messages); len(diff) != 0 {
+			t.Errorf("Messages mismatch (-want +got):\n%s", diff)
+		}
+
+	})
+
+}
+
 func TestMessageResolver_User(t *testing.T) {
 	resolver := getResolver()
 	ctx := context.Background()
@@ -90,6 +112,65 @@ func TestMutationResolver_CreateMessage(t *testing.T) {
 		assert.Equal(t, input.UserID, message.UserID)
 		assert.Equal(t, input.Message, message.Message)
 
+		t.Cleanup(func() {
+			if message != nil && message.ID != "0" {
+				db := getDatabase()
+				st, err := db.Prepare("DELETE FROM message WHERE id = ?")
+				if err == nil {
+					_, err = st.Exec(message.ID)
+					if err != nil {
+						panic(err.Error())
+					}
+				}
+				defer st.Close()
+			}
+		})
+
+	})
+	t.Run("create message user=2", func(t *testing.T) {
+		input := model.NewMessage{
+			UserID:  "2",
+			Message: "new message 2",
+		}
+		message, err := resolver.CreateMessage(ctx, input)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, message)
+		id, _ := strconv.Atoi(message.ID)
+		assert.Greater(t, id, 1)
+		assert.Equal(t, input.UserID, message.UserID)
+		assert.Equal(t, input.Message, message.Message)
+
+		t.Cleanup(func() {
+			if message != nil && message.ID != "0" {
+				db := getDatabase()
+				st, err := db.Prepare("DELETE FROM message WHERE id = ?")
+				if err == nil {
+					_, err := st.Exec(message.ID)
+					if err != nil {
+						panic(err.Error())
+					}
+				}
+				defer st.Close()
+			}
+		})
+	})
+	t.Run("create not exist user", func(t *testing.T) {
+		input := model.NewMessage{
+			UserID:  "9999",
+			Message: "new message 99999",
+		}
+		message, err := resolver.CreateMessage(ctx, input)
+		assert.Error(t, err)
+		assert.Empty(t, message)
+	})
+	t.Run("create wrong user_id", func(t *testing.T) {
+		input := model.NewMessage{
+			UserID:  "AAA",
+			Message: "new message AAA",
+		}
+		message, err := resolver.CreateMessage(ctx, input)
+		assert.Error(t, err)
+		assert.Nil(t, message)
 	})
 
 }
@@ -119,6 +200,7 @@ func getDatabase() *io.SQLDatabase {
 		log.Println(err.Error())
 		os.Exit(1)
 	}
+
 	sqlSetting := &config.SQLDBSetting{
 		SqlDSN:              cfg.DB.DSN,
 		SqlMaxOpenConns:     cfg.DB.MaxOpenConns,
