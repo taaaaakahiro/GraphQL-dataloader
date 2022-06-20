@@ -164,13 +164,31 @@ func TestMutationResolver_CreateMessage(t *testing.T) {
 		assert.Empty(t, message)
 	})
 	t.Run("create wrong user_id", func(t *testing.T) {
-		input := model.NewMessage{
-			UserID:  "AAA",
-			Message: "new message AAA",
+		inputs := []model.NewMessage{
+			{UserID: "1", Message: "new message 1"},
+			{UserID: "1", Message: "new message 2"},
+			{UserID: "2", Message: "new message 3"},
+			{UserID: "2", Message: "new message 4"},
 		}
-		message, err := resolver.CreateMessage(ctx, input)
-		assert.Error(t, err)
-		assert.Nil(t, message)
+		for i, inp := range inputs {
+			message, err := resolver.CreateMessage(ctx, inp)
+			assert.NoError(t, err)
+			assert.NotEmpty(t, message)
+			t.Cleanup(func() {
+				if message != nil && message.ID != "0" {
+					db := getDatabase()
+					st, err := db.Prepare("DELETE FROM message WHERE id = ?")
+					if err == nil && i < 3 {
+						_, err := st.Exec(message.ID)
+						if err != nil {
+							panic(err.Error())
+						}
+					}
+					defer st.Close()
+				}
+			})
+
+		}
 	})
 
 }
