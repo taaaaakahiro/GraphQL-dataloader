@@ -170,7 +170,7 @@ func TestMutationResolver_CreateMessage(t *testing.T) {
 			{UserID: "2", Message: "new message 3"},
 			{UserID: "2", Message: "new message 4"},
 		}
-		for i, inp := range inputs {
+		for _, inp := range inputs {
 			message, err := resolver.CreateMessage(ctx, inp)
 			assert.NoError(t, err)
 			assert.NotEmpty(t, message)
@@ -178,7 +178,7 @@ func TestMutationResolver_CreateMessage(t *testing.T) {
 				if message != nil && message.ID != "0" {
 					db := getDatabase()
 					st, err := db.Prepare("DELETE FROM message WHERE id = ?")
-					if err == nil && i < 3 {
+					if err == nil {
 						_, err := st.Exec(message.ID)
 						if err != nil {
 							panic(err.Error())

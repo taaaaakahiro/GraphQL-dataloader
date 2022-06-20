@@ -15,8 +15,8 @@ re:
 
 sh-mysql:
 	${dck} exec mysql8 sh
-	
+
 test:
-	@echo "Test Start"
-	go test ./pkg/... -v -count=1
+	@echo "★★★ Test Start ★★★"
+	go test ./pkg/... -count=1
 

@@ -12,7 +12,7 @@ type Repositories struct {
 
 func NewReopsitories(db *io.SQLDatabase) (*Repositories, error) {
 	return &Repositories{
-		User:    NewUserReopsitory(db),
+		User:    NewUserRepository(db),
 		Message: NewMessageReopsitory(db),
 	}, nil
 }

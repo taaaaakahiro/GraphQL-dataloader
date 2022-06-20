@@ -23,7 +23,7 @@ type UserRepo struct {
 
 var _ repository.IUserRepository = (*UserRepo)(nil)
 
-func NewUserReopsitory(db *io.SQLDatabase) *UserRepo {
+func NewUserRepository(db *io.SQLDatabase) *UserRepo {
 	return &UserRepo{
 		database: db,
 	}
