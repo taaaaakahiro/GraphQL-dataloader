@@ -41,6 +41,12 @@ func (s *Server) registerHandler() {
 	// graph ql
 	s.Mux.Handle("/gql", playground.Handler("GraphQL playground", "/query"))
 	s.Mux.Handle("/query", s.handler.V1.Query())
+	// rest api
+	s.Mux.Handle("/user/list", s.handler.V1.GetUsers())
+	s.Mux.Handle("/message/list", s.handler.V1.GetMessages())
+	// others
+	s.Mux.Handle("/healthz", s.healthCheckHandler())
+	s.Mux.Handle("/version", s.handler.Version.GerVersion())
 }
 
 func (s *Server) Serve(listener net.Listener) error {
@@ -57,6 +63,12 @@ func (s *Server) Serve(listener net.Listener) error {
 }
 
 func (s *Server) GracefulShutdown() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+}
+
+func (s *Server) healthCheckHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})

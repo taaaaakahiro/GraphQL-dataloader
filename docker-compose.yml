@@ -2,6 +2,7 @@ version: '2'
 services:
 ### ---- mysql containers ----
   mysql8:
+    container_name: mysql
     build:
       context: ./mock/mysql/
     ports:

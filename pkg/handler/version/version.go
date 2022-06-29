@@ -1,6 +1,9 @@
 package version
 
 import (
+	"encoding/json"
+	"net/http"
+
 	"go.uber.org/zap"
 )
 
@@ -20,4 +23,17 @@ func NewHandler(logger *zap.Logger, ver string) *Handler {
 			Version: ver,
 		},
 	}
+}
+
+func (h Handler) GerVersion() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		b, err := json.Marshal(h.res)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			h.logger.Error("failed to marshal version", zap.Error(err))
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write(b)
+	})
 }
